@@ -5,14 +5,28 @@ reproducible analysis of open positional tracking data.**
 
 > Status: work in progress (Phase 2, project setup). No results yet.
 
-## Quick start (Ubuntu)
+## Quick start
+
+**Option A: local, with [uv](https://docs.astral.sh/uv/)**
 
 ```bash
-python3 -m venv venv
-make setup     # install package + dev tools
+make setup     # create .venv with the exact locked dependencies (uv sync)
 make data      # download Metrica Sports sample data into data/raw/
 make test      # verify the environment
+make jupyter   # optional: JupyterLab
 ```
+
+**Option B: Docker (no local Python needed)**
+
+```bash
+make data            # needs only git; data is mounted into the container
+make docker-build
+make docker-test
+make docker-jupyter  # http://127.0.0.1:8888, token: pmi
+```
+
+Run any command in the container with `docker compose run --rm app <command>`.
+After changing dependencies: `make lock`, then `make setup` or `make docker-build`.
 
 ## Documentation
 

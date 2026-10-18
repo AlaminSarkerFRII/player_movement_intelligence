@@ -1,19 +1,35 @@
-PYTHON := venv/bin/python
+# Local workflow uses uv; Docker targets run the same commands in a container.
+export UID := $(shell id -u)
+export GID := $(shell id -g)
 
-.PHONY: setup data test lint freeze
+.PHONY: setup lock data test lint jupyter docker-build docker-test docker-shell docker-jupyter
 
-setup:            ## Install the package and dev tools into ./venv
-	$(PYTHON) -m pip install --upgrade pip
-	$(PYTHON) -m pip install -e ".[dev]"
+setup:            ## Create .venv and install locked dependencies
+	uv sync
+
+lock:             ## Update uv.lock after changing pyproject.toml
+	uv lock
 
 data:             ## Download raw datasets into data/raw
 	bash scripts/download_data.sh
 
 test:             ## Run the test suite
-	$(PYTHON) -m pytest -q
+	uv run pytest -q
 
 lint:             ## Check code style
-	$(PYTHON) -m ruff check src tests
+	uv run ruff check src tests
 
-freeze:           ## Record exact installed versions for reproducibility
-	$(PYTHON) -m pip freeze --exclude-editable > requirements-lock.txt
+jupyter:          ## Start JupyterLab locally
+	uv run jupyter lab
+
+docker-build:     ## Build the Docker image
+	docker compose build
+
+docker-test:      ## Run the test suite inside Docker
+	docker compose run --rm app
+
+docker-shell:     ## Open a shell inside the container
+	docker compose run --rm app bash
+
+docker-jupyter:   ## JupyterLab in Docker at http://127.0.0.1:8888 (token: pmi)
+	docker compose up jupyter

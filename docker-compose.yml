@@ -1,0 +1,24 @@
+# The project folder is mounted at /app, so code edits on the host are seen
+# immediately and outputs (data/, reports/) are written back to the host.
+# Runs as your host user so created files are not owned by root.
+x-base: &base
+  build: .
+  image: pmi:latest
+  user: "${UID:-1000}:${GID:-1000}"
+  environment:
+    HOME: /tmp
+  volumes:
+    - .:/app
+
+services:
+  app:
+    <<: *base
+    command: pytest -q
+
+  jupyter:
+    <<: *base
+    command: >
+      jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
+      --ServerApp.token=${JUPYTER_TOKEN:-pmi}
+    ports:
+      - "127.0.0.1:8888:8888"   # reachable from this machine only
