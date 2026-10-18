@@ -95,13 +95,41 @@ moments, which the research question needs.
    ball-in-play filter.
 2. **Direction of play:** teams switch ends at half-time. Coordinates must be
    flipped so each team always attacks in the same direction.
-3. **Goalkeeper identification:** the first player column appears to be the
-   goalkeeper (Home Player11 starts at x ≈ 0.0008 in Game 1). Confirm this per
-   team and period.
+3. ~~**Goalkeeper identification**~~ **Resolved (Phase 3.1).** A heuristic
+   (the player furthest from the centre line on average) finds Player11 and
+   Player25 in Games 1–2, the first column of each file, and P3578 and P3595
+   in Game 3, exactly the goalkeepers labelled in the Game 3 metadata.
 4. **Tracking quality:** check for physically impossible speeds (for example,
    above 12 m/s) that would indicate tracking noise.
 
-## 7. Conclusion
+## 7. Findings from loading the data (Phase 3.1)
+
+Produced by `make interim` (summary table) and `make test-data`.
+
+| Property | Game 1 | Game 2 | Game 3 |
+|---|---|---|---|
+| Frames / minutes | 145,006 / 96.7 | 141,156 / 94.1 | 143,761 / 95.8 |
+| Players used (home / away) | 14 / 14 | 14 / 12 | 17 / 18 |
+| Events | 1,745 | 1,935 | 3,620 |
+| Ball position missing | 39.1 % | 41.0 % | 32.2 % |
+
+- **Time column:** in the CSV, `Time [s]` runs continuously across both halves
+  (period 2 starts at 2,850.76 s in Game 1). The common format recomputes
+  `time_s` as seconds since period start, matching kloppy's Game 3 timestamps.
+- **Substitutions:** the CSV files show 12 players on one team for exactly one
+  frame at each substitution (6 team-frames in Game 1, 4 in Game 2). Game 3
+  used 6–7 substitutes per team, so it may not be a match under standard
+  competition rules.
+- **Event vocabulary differs:** Game 3 has 1,395 `CARRY` events, a type that
+  does not exist in Games 1–2. Possession logic must not depend on `CARRY`, or
+  Game 3 will not be comparable with Games 1–2.
+- **Positions outside the pitch:** x reaches ±57.8 m (goal line at ±52.5 m)
+  and y reaches 39.3 m (touchline at ±34 m). These are plausible (players
+  behind the goal or beside the touchline), but are checked again in
+  preprocessing.
+- **Game 3 teams:** "Team A" (`FIFATMA`) is home and "Team B" (`FIFATMB`) is away.
+
+## 8. Conclusion
 
 The data contains **continuous 25 Hz positions for all players and the ball,
 synchronized with event data**. It is suitable for the primary research

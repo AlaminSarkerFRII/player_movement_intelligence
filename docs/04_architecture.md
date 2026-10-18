@@ -38,13 +38,15 @@ player-movement-intelligence/
 │   └── tables/               # final result tables (CSV)
 ├── scripts/
 │   ├── download_data.sh      # fetch raw data (pinned versions)
+│   ├── build_interim.py      # raw → validated common-format parquet (make interim)
 │   └── run_pipeline.py       # (Phase 3) end-to-end: raw → figures
 ├── src/pmi/
 │   ├── config.py             # load YAML, resolve paths, set seeds
-│   ├── io/                   # (Phase 3) dataset loaders → one common format
+│   ├── io/                   # dataset loaders → one common format (in meters)
+│   │   ├── common.py         #   schema, coordinate conversion, goalkeeper detection, validation, parquet I/O
 │   │   ├── metrica.py        #   Games 1–2 CSV and Game 3 via kloppy
-│   │   └── idsse.py          #   replication dataset
-│   ├── preprocessing.py      # (Phase 3) meters, flip direction, smoothing, speed QC
+│   │   └── idsse.py          #   (later) replication dataset
+│   ├── preprocessing.py      # (Phase 3) flip direction, smoothing, speed QC
 │   ├── possession.py         # (Phase 3) ball-in-play, possession, turnovers
 │   ├── metrics.py            # (Phase 3) length, width, hull area, stretch index
 │   ├── analysis/             # (Phase 3)
@@ -89,8 +91,8 @@ x, y, end_x, end_y.
 
 ```mermaid
 flowchart LR
-    A[data/raw<br/>Metrica / IDSSE] --> B[io loaders<br/>common format]
-    B --> C[preprocessing<br/>meters, direction,<br/>smoothing, QC]
+    A[data/raw<br/>Metrica / IDSSE] --> B[io loaders<br/>common format, meters]
+    B --> C[preprocessing<br/>direction,<br/>smoothing, QC]
     C --> D[possession<br/>in-play, turnovers]
     C --> E[metrics<br/>length, width,<br/>area, stretch]
     D --> F[analysis]

@@ -2,7 +2,7 @@
 export UID := $(shell id -u)
 export GID := $(shell id -g)
 
-.PHONY: setup lock data test lint jupyter docker-build docker-test docker-shell docker-jupyter
+.PHONY: setup lock data interim test test-data lint jupyter docker-build docker-test docker-shell docker-jupyter
 
 setup:            ## Create .venv and install locked dependencies
 	uv sync
@@ -13,11 +13,17 @@ lock:             ## Update uv.lock after changing pyproject.toml
 data:             ## Download raw datasets into data/raw
 	bash scripts/download_data.sh
 
-test:             ## Run the test suite
+interim:          ## Load, validate and convert raw data to data/interim (parquet)
+	uv run python scripts/build_interim.py
+
+test:             ## Run the fast unit tests
 	uv run pytest -q
 
+test-data:        ## Check the real datasets against the audit (slow, ~1 min)
+	uv run pytest -q -m data
+
 lint:             ## Check code style
-	uv run ruff check src tests
+	uv run ruff check src tests scripts
 
 jupyter:          ## Start JupyterLab locally
 	uv run jupyter lab
