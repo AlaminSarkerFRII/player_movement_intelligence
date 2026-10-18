@@ -78,6 +78,11 @@ def build_windows(ev, data, cfg, baseline_s=None):
                                              offsets)
             out[(metric, persp)] = tc.baseline_correct(w, offsets_s, baseline_s,
                                                        tcfg["min_baseline_coverage"])
+        # Keep only events where both teams are measurable, so the two perspectives
+        # use the same events (paired comparison of half-change times).
+        both = out[(metric, "lost")][1] & out[(metric, "won")][1]
+        for persp in PERSPECTIVES:
+            out[(metric, persp)] = (out[(metric, persp)][0], both)
     return out, offsets_s
 
 

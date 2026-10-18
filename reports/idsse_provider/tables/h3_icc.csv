@@ -1,0 +1,2 @@
+metric,perspective,between_var,within_var,icc,converged,warnings
+area,lost,3418.4722186141225,194606.30669822043,0.017262850827621905,False,"Gradient optimization failed, |grad| = 9; Maximum Likelihood optimization failed to converge; MixedLM optimization failed, trying a different optimizer ma; Retrying MixedLM optimization with cg; Retrying MixedLM optimization with lbfgs"

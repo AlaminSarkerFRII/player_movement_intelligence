@@ -1,0 +1,9 @@
+metric,reference,t50_won_minus_lost_s,ci_low,ci_high,paired
+area,late,3.48,1.44,5.04,True
+area,peak,3.2,1.2000000000000002,5.040999999999994,True
+length,late,0.8399999999999999,0.0,1.8399999999999999,True
+length,peak,0.6400000000000001,0.0,1.6809999999999947,True
+stretch,late,5.44,3.879,7.4399999999999995,True
+stretch,peak,5.16,2.3570000000000007,6.96,True
+width,late,4.48,3.44,5.08,True
+width,peak,3.64,2.76,4.44,True
