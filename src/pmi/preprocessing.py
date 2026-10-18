@@ -151,13 +151,15 @@ def fill_short_ball_gaps(ball: pd.DataFrame, max_gap_frames: int) -> pd.DataFram
 def event_live_mask(frames: pd.DataFrame, events: pd.DataFrame, cfg_bip: dict) -> np.ndarray:
     """True where the event data implies the ball is in play.
 
-    Play is dead from each stoppage event (ball out, foul, shot out/goal) until the
+    Play is dead from each stoppage event (ball out, foul, shot out/goal, offside) until the
     next restart event (set piece or goal kick), before the first restart of a
     period, and after the last event of a period.
     """
     sub = events["subtype"].fillna("")
-    stop = events["type"].isin(cfg_bip["stop_types"]) | (
-        events["type"].eq("SHOT") & sub.str.contains("|".join(cfg_bip["stop_shot_subtypes"]))
+    stop = (
+        events["type"].isin(cfg_bip["stop_types"])
+        | (events["type"].eq("SHOT") & sub.str.contains("|".join(cfg_bip["stop_shot_subtypes"])))
+        | sub.str.contains("|".join(cfg_bip["stop_subtypes"]))
     )
     restart = events["type"].isin(cfg_bip["restart_types"]) | sub.str.contains(
         "|".join(cfg_bip["restart_subtypes"])

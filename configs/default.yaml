@@ -27,6 +27,7 @@ ball_in_play:
   max_ball_gap_s: 1.0         # sensitivity: shorter ball gaps are interpolated
   stop_types: ["BALL OUT", "FAULT RECEIVED"]
   stop_shot_subtypes: ["OUT", "GOAL"]   # SHOT events whose subtype contains these
+  stop_subtypes: ["OFFSIDE"]            # any event whose subtype contains these
   restart_types: ["SET PIECE"]
   restart_subtypes: ["GOAL KICK"]       # goal kicks are coded as PASS / BALL LOST
 
@@ -35,7 +36,8 @@ datasets:
     games: [1, 2, 3]
 
 possession:
-  turnover_event_types: ["BALL LOST", "RECOVERY"]
+  # Events showing which team has the ball. CARRY is excluded: only Game 3 has it.
+  control_event_types: ["PASS", "BALL LOST", "RECOVERY", "SHOT", "SET PIECE"]
   min_gap_between_turnovers_s: 3.0   # sensitivity
   min_possession_length_s: 2.0       # sensitivity
 

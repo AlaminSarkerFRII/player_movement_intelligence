@@ -1,4 +1,4 @@
 match_id,flipped_periods,player_rows_failed_qc_pct,frames_failed_qc_pct,ball_missing_after_fill_pct,event_dead_pct,agreement_ball_vs_events_pct,in_play_minutes,in_play_pct,median_speed_in_play_ms
-metrica_1,2,0.014,0.3,38.9,41.9,85.0,50.3,52.1,1.96
-metrica_2,1,0.035,0.74,40.8,35.9,85.8,51.3,54.6,1.84
-metrica_3,1,0.024,0.51,32.1,29.9,93.3,62.9,65.7,1.98
+metrica_1,2,0.014,0.3,38.9,42.5,85.6,50.3,52.1,1.96
+metrica_2,1,0.035,0.74,40.8,36.3,86.2,51.3,54.6,1.84
+metrica_3,1,0.024,0.51,32.1,31.4,94.7,62.8,65.6,1.98

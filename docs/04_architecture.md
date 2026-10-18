@@ -40,6 +40,7 @@ player-movement-intelligence/
 │   ├── download_data.sh      # fetch raw data (pinned versions)
 │   ├── build_interim.py      # raw → validated common-format parquet (make interim)
 │   ├── preprocess.py         # interim → data/processed + QC table (make preprocess)
+│   ├── build_possession.py   # spells, turnovers, EDA figures (make possession)
 │   └── run_pipeline.py       # (Phase 3) end-to-end: raw → figures
 ├── src/pmi/
 │   ├── config.py             # load YAML, resolve paths, set seeds
@@ -48,13 +49,13 @@ player-movement-intelligence/
 │   │   ├── metrica.py        #   Games 1–2 CSV and Game 3 via kloppy
 │   │   └── idsse.py          #   (later) replication dataset
 │   ├── preprocessing.py      # direction (180° rotation), velocities + speed QC, ball in play
-│   ├── possession.py         # (Phase 3) ball-in-play, possession, turnovers
+│   ├── possession.py         # possession spells, per-frame possession, turnovers + funnel
 │   ├── metrics.py            # (Phase 3) length, width, hull area, stretch index
 │   ├── analysis/             # (Phase 3)
 │   │   ├── static.py         #   H1: possession-sequence mixed models
 │   │   ├── timecourse.py     #   H2: turnover-aligned curves + controls
 │   │   └── classify.py       #   optional: leave-one-match-out classifier
-│   └── viz.py                # (Phase 3) shared plotting style and functions
+│   └── viz.py                # shared figure style, validated colours, pitch drawing
 ├── tests/                    # pytest unit tests, one file per module
 ├── Dockerfile                # container image (uv + locked deps)
 ├── docker-compose.yml        # `app` (tests/commands) and `jupyter` services
@@ -94,7 +95,7 @@ x, y, end_x, end_y.
 flowchart LR
     A[data/raw<br/>Metrica / IDSSE] --> B[io loaders<br/>common format, meters]
     B --> C[preprocessing<br/>direction,<br/>smoothing, QC]
-    C --> D[possession<br/>in-play, turnovers]
+    C --> D[possession<br/>spells, turnovers]
     C --> E[metrics<br/>length, width,<br/>area, stretch]
     D --> F[analysis]
     E --> F

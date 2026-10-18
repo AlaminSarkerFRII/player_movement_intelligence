@@ -68,11 +68,20 @@ matches?
 - **Ball in play:** frames where the ball position is tracked and that do not
   fall between a `BALL OUT` event and the next `SET PIECE` event (to be
   validated, see dataset audit).
-- **Possession:** the team of the most recent on-ball event.
-- **Open-play turnover:** a possession change marked by a `BALL LOST` or
-  `RECOVERY` event, not a set-piece restart. Turnovers within 3 s of a
-  previous turnover are excluded so that post-turnover windows do not overlap
-  (the threshold will be sensitivity-tested).
+- **Control event:** `PASS`, `BALL LOST`, `RECOVERY`, `SHOT` or `SET PIECE`:
+  the event's team has the ball at that moment. `CARRY` is excluded because
+  only Game 3 has it.
+- **Possession spell:** consecutive control events by one team with the ball in
+  play throughout. It ends when the other team's spell starts or play stops.
+- **Open-play turnover:** a spell that directly follows a spell of the other team
+  with no stoppage in between. `t0` is the winning team's first control event
+  (usually `RECOVERY`).
+- **Included turnover** (implemented in Phase 3.3): the losing team had the ball
+  for at least 2 s before, the winning team keeps it for at least 2 s after, at
+  least 3 s have passed since the previous turnover, and the ball position at
+  `t0` is known. These rules make the pre-turnover state a real
+  in-possession baseline and the change of possession a real one. All
+  thresholds are sensitivity-tested. Result: 354 of 740 open-play turnovers.
 
 ## 7. Methods
 

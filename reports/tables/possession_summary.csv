@@ -1,0 +1,4 @@
+match_id,spells,spells_with_ball_in_play,median_spell_s,home_possession_pct,open_play_turnovers,included_turnovers
+metrica_1,431,342,4.9,51.0,241,121
+metrica_2,423,333,4.4,52.0,227,96
+metrica_3,428,375,5.0,51.6,272,137

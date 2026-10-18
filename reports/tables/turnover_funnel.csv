@@ -1,0 +1,6 @@
+step,metrica_1,metrica_2,metrica_3,total
+open-play turnovers,241,227,272,740
+losing team had the ball >= min length,183,163,206,552
+winning team kept the ball >= min length,137,112,157,406
+>= min gap since previous turnover,121,96,137,354
+ball position known at t0,121,96,137,354

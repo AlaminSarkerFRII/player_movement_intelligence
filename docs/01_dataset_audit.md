@@ -91,7 +91,7 @@ moments, which the research question needs.
 
 1. ~~**Why is the ball missing in about 40 % of frames?**~~ **Partly confirmed
    (Phase 3.2).** Missing ball frames agree with event-derived stoppages in
-   85–93 % of frames, but not fully. See section 8.
+   86–95 % of frames, but not fully. See section 8.
 2. ~~**Direction of play**~~ **Resolved (Phase 3.2).** Goalkeepers switch ends
    at half-time in all games. Periods are rotated 180° so the home team always
    attacks towards +x.
@@ -138,9 +138,9 @@ Produced by `make preprocess`; table saved in `reports/tables/preprocessing_qc.c
 | Player rows failing speed QC (raw > 12 m/s) | 0.014 % | 0.035 % | 0.024 % |
 | Frames with ≥ 1 player failing QC | 0.30 % | 0.74 % | 0.51 % |
 | Ball missing (after filling gaps ≤ 1 s) | 38.9 % | 40.8 % | 32.1 % |
-| Play dead according to events | 41.9 % | 35.9 % | 29.9 % |
-| Agreement: ball tracked vs event-live | 85.0 % | 85.8 % | 93.3 % |
-| **Ball in play (both signals agree)** | **50.3 min** | **51.3 min** | **62.9 min** |
+| Play dead according to events | 42.5 % | 36.3 % | 31.4 % |
+| Agreement: ball tracked vs event-live | 85.6 % | 86.2 % | 94.7 % |
+| **Ball in play (both signals agree)** | **50.3 min** | **51.3 min** | **62.8 min** |
 | Median player speed in play | 1.96 m/s | 1.84 m/s | 1.98 m/s |
 
 **Speed outliers.** Raw speeds above 12 m/s come in short bursts (median 6
@@ -163,11 +163,53 @@ speed-based result must be checked for sensitivity to this threshold.
 - Frames where the ball is tracked while events say play is dead come in short
   runs (median about 1 s), probably small timing offsets around restarts.
 
+**Offside** (`BALL LOST | OFFSIDE`, 1–4 per game) is also treated as a
+stoppage. It was added in Phase 3.3 after offside turnovers appeared among
+the open-play turnovers.
+
 **Decision:** `in_play = event_live AND ball_tracked`. This is conservative: it
 excludes uncertain frames and so reduces sample size rather than adding noise.
 The 1 s gap-filling threshold is part of the sensitivity analysis.
 
-## 9. Conclusion
+## 9. Possession and turnovers (Phase 3.3)
+
+Produced by `make possession`. Tables are in `reports/tables/possession_summary.csv`
+and `turnover_funnel.csv`; figures are `eda_spell_durations.png` and
+`eda_turnover_locations.png`.
+
+**Event sequence at a change of possession.** Usually `BALL LOST` (team A,
+recorded when A plays the ball) is followed by `RECOVERY` (team B) about 1.5 s
+later, often with `CHALLENGE` events in between. So `t0` is the winning
+team's first control event: a `RECOVERY` in 82–89 % of open-play turnovers.
+
+| | Game 1 | Game 2 | Game 3 |
+|---|---|---|---|
+| Possession spells (with ball in play) | 342 | 333 | 375 |
+| Median spell length, ball in play | 4.9 s | 4.4 s | 5.0 s |
+| Home possession share | 51.0 % | 52.0 % | 51.6 % |
+| Open-play turnovers | 241 | 227 | 272 |
+| **Included turnovers** | **121** | **96** | **137** |
+
+**Inclusion funnel (all games, 740 → 354).** Each rule is applied in order:
+losing team had the ball ≥ 2 s (552), winning team kept it ≥ 2 s (406), at
+least 3 s since the previous turnover (354), ball position known (354).
+
+**Where the ball is won** (included turnovers, from the winning team's view):
+defensive third 187, middle third 142, attacking third 25. A visible cluster
+inside the defending penalty area comes from goalkeepers collecting the ball
+(`RECOVERY | SAVED` and similar). These should be analysed separately or
+excluded in a sensitivity check, because a goalkeeper catch is a different
+situation from an outfield interception.
+
+**Notes**
+- Spells with zero in-play time (46–89 per game) are control events recorded
+  while play is stopped (for example, a `RECOVERY` just after the ball went
+  out). They never count as turnovers.
+- One in-play frame in Game 2 (0.001 %) has no possession label.
+- One `RECOVERY | GOAL` event in Game 3 has unclear meaning. It is kept, and
+  its effect is negligible (1 of 354).
+
+## 10. Conclusion
 
 The data contains **continuous 25 Hz positions for all players and the ball,
 synchronized with event data**. It is suitable for the primary research

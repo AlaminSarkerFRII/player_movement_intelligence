@@ -153,3 +153,14 @@ def test_real_quality_is_within_expected_bounds(processed):
     live_speed = t.loc[t["frame"].isin(f.loc[f["in_play"], "frame"]), "speed"]
     assert live_speed.max() <= 12.0 + 1e-6
     assert 1.0 < live_speed.median() < 3.0
+
+
+def test_offside_is_a_stoppage():
+    frames = pd.DataFrame({"period": 1, "frame": np.arange(1, 51)})
+    events = pd.DataFrame({
+        "period": 1, "frame": [1, 10, 30, 50],
+        "type": ["SET PIECE", "BALL LOST", "SET PIECE", "PASS"],
+        "subtype": ["KICK OFF", "OFFSIDE", "FREE KICK", None],
+    })
+    live = event_live_mask(frames, events, BIP)
+    assert not live[9:29].any() and live[29:].all()
