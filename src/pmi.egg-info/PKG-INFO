@@ -1,0 +1,49 @@
+Metadata-Version: 2.4
+Name: pmi
+Version: 0.1.0
+Summary: Player Movement Intelligence: team shape reorganization after possession changes, from open soccer tracking data
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=1.26
+Requires-Dist: pandas>=2.2
+Requires-Dist: pyarrow>=15
+Requires-Dist: scipy>=1.12
+Requires-Dist: statsmodels>=0.14
+Requires-Dist: scikit-learn>=1.4
+Requires-Dist: matplotlib>=3.8
+Requires-Dist: plotly>=5.20
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: kloppy>=3.15
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: ruff>=0.4; extra == "dev"
+Requires-Dist: jupyterlab>=4.1; extra == "dev"
+Requires-Dist: ipykernel>=6.29; extra == "dev"
+
+# Player Movement Intelligence
+
+**How soccer teams reorganize their shape after a change of possession: a
+reproducible analysis of open positional tracking data.**
+
+> Status: work in progress (Phase 2, project setup). No results yet.
+
+## Quick start (Ubuntu)
+
+```bash
+python3 -m venv venv
+make setup     # install package + dev tools
+make data      # download Metrica Sports sample data into data/raw/
+make test      # verify the environment
+```
+
+## Documentation
+
+- [Dataset audit](docs/01_dataset_audit.md)
+- [Literature notes](docs/02_literature_notes.md)
+- [Research proposal](docs/03_research_proposal.md)
+- [Architecture](docs/04_architecture.md)
+
+## Data acknowledgement
+
+Tracking and event data: [Metrica Sports sample data](https://github.com/metrica-sports/sample-data).
+Raw data is not redistributed in this repository.

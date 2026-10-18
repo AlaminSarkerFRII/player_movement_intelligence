@@ -1,0 +1,39 @@
+# Single source of truth for every analysis parameter.
+# Change values here, never hard-code them in notebooks or modules.
+# Each value marked "sensitivity" will be varied in the sensitivity analysis.
+
+seed: 42
+
+paths:
+  raw: data/raw
+  interim: data/interim        # cleaned, per-match parquet files
+  processed: data/processed    # analysis-ready tables (metrics, turnovers)
+  figures: reports/figures
+  tables: reports/tables
+
+pitch:
+  length_m: 105.0   # Metrica README
+  width_m: 68.0
+
+tracking:
+  fps: 25                     # verified in docs/01_dataset_audit.md
+  smoothing_window_s: 0.28    # sensitivity: Savitzky-Golay window for positions
+  max_speed_ms: 12.0          # speeds above this are flagged as tracking errors
+
+datasets:
+  metrica:
+    games: [1, 2, 3]
+
+possession:
+  turnover_event_types: ["BALL LOST", "RECOVERY"]
+  min_gap_between_turnovers_s: 3.0   # sensitivity
+  min_possession_length_s: 2.0       # sensitivity
+
+metrics:
+  exclude_goalkeeper: true   # sensitivity
+
+timecourse:
+  window_before_s: 5.0
+  window_after_s: 10.0
+  n_control_samples_per_turnover: 5
+  n_bootstrap: 2000
