@@ -6,3 +6,6 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .ruff_cache/
+
+# Papers (copyright: read locally, do not redistribute)
+docs/*.pdf

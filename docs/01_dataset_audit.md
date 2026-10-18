@@ -1,4 +1,8 @@
-# Dataset Audit: Metrica Sports Sample Data
+# Dataset Audit
+
+Part A: Metrica Sports sample data (sections 1–10). Part B: IDSSE replication dataset (sections 11–14).
+
+# Part A: Metrica Sports Sample Data
 
 Audit date: 2026-10-18
 Source: https://github.com/metrica-sports/sample-data (commit `e706dd5`, "Added Sample Game 3")
@@ -215,3 +219,128 @@ The data contains **continuous 25 Hz positions for all players and the ball,
 synchronized with event data**. It is suitable for the primary research
 question. The main constraints are the small sample (3 matches, anonymized
 teams) and the cleaning issues listed above.
+
+---
+
+# Part B: IDSSE replication dataset (Phase 3.6)
+
+## 11. Source, license and download
+
+- **Paper:** Bassek, M., Rein, R., Weber, H., & Memmert, D. (2025). An integrated
+  dataset of spatiotemporal and event data in elite soccer. *Scientific Data*,
+  12, 195. doi:10.1038/s41597-025-04505-y
+- **License:** CC-BY 4.0.
+- **Files used:** the PySport mirror on Hugging Face (`pysport/idsse-data`),
+  which is the source kloppy uses. It is pinned to dataset revision
+  `a715a38dfbaf5f58e431727c2b78d174101a703c`. All 21 files (2.5 GB) are checked
+  against SHA-256 checksums in `scripts/idsse_sha256.txt`. For the 7 large
+  tracking files these come from the mirror's own file records. For the 14
+  small XML files they were computed at first download, so they detect later
+  changes but not a mirror that differed from the original before then.
+- **Not yet done:** comparing the mirror with the original figshare deposit
+  named in the paper.
+
+## 12. Contents
+
+| | |
+|---|---|
+| Matches | 7 (2 Bundesliga, 5 2. Bundesliga, season 2022/23) |
+| Tracking | DFL positions XML, 25 Hz, all 22 players and the ball, multi-camera optical |
+| Events | DFL raw event XML (wall-clock timestamps, not frame numbers) |
+| Pitch | 105 × 68 m in every match (same as Metrica) |
+| Frames per match | 137,214 – 146,810 (91.5 – 97.9 min) |
+
+| Match | Teams |
+|---|---|
+| J03WMX | 1. FC Köln vs FC Bayern München |
+| J03WN1 | VfL Bochum vs Bayer 04 Leverkusen |
+| J03WOH | Fortuna Düsseldorf vs SSV Jahn Regensburg |
+| J03WOY | Fortuna Düsseldorf vs F.C. Hansa Rostock |
+| J03WPY | Fortuna Düsseldorf vs 1. FC Nürnberg |
+| J03WQQ | Fortuna Düsseldorf vs FC St. Pauli |
+| J03WR9 | Fortuna Düsseldorf vs 1. FC Kaiserslautern |
+
+**Fortuna Düsseldorf plays in 5 of the 7 matches** (always at home, with the
+same goalkeeper in all five). The 14 team-matches are therefore not 14
+independent teams.
+
+## 13. Findings from loading (`make replicate`)
+
+Tables: `reports/idsse/tables/interim_summary.csv`, `event_sync_lags.csv`,
+`preprocessing_qc.csv`.
+
+- **Frame numbers** restart each half (10000…, 100000…). They are renumbered
+  consecutively across the match.
+- **The ball is tracked in 100 % of frames**, and DFL labels the ball status
+  (in play or dead) and the team in possession on every frame. Ball in play is
+  therefore taken from the provider (`ball_in_play.source: provider`), not
+  derived from events. Ball-in-play time: 45.6 – 56.9 min per match.
+- **Goalkeepers:** the detection heuristic finds exactly the goalkeepers in
+  the DFL metadata in all 7 matches.
+- **Speed QC:** at most 0.008 % of player rows fail (raw speed > 12 m/s), far
+  fewer than in Metrica.
+- **Red card:** in J03WN1 the away team had 9 outfield players for most of the
+  match (130,945 of 141,561 frames). Those frames fail
+  `required_players: 10`, so this team-match contributes few events. Only 8–10
+  turnovers remain once both teams must be measurable.
+- **`DELETE` events** (52–108 per match) are empty placeholders with no content
+  and no reference to another event. They are ignored.
+
+### Event mapping
+
+DFL events are converted with kloppy and mapped to the control-event names
+used by the possession code (`pmi.io.idsse.map_event`):
+
+| Our type | DFL source | Control event? |
+|---|---|---|
+| PASS / SET PIECE | `Play` (set-piece qualifier → SET PIECE) | yes |
+| SHOT | `ShotAtGoal` | yes |
+| RECOVERY | `BallClaiming` | yes |
+| DUEL WON | `TacklingGame`, winner ends **with ball control** | yes |
+| OTHER BALL ACTION | `OtherBallAction` (a touch by that team) | yes |
+| DUEL | other `TacklingGame` | no |
+| BALL OUT, FOUL_COMMITTED, … | as named | no |
+
+DFL has no equivalent of Metrica's `BALL LOST`. `BallClaiming` is rare (12–48
+per match in the raw XML; kloppy maps only some of these to `RECOVERY`).
+
+### Event timing (synchronization)
+
+Raw DFL event timestamps are not perfectly aligned with the tracking data. For
+each half, the frame shift that best matches pass/shot locations to the
+tracked ball position was estimated (median distance, search ±4 s):
+
+- **Lags vary in size and direction:** −21 to +46 frames per half (−0.8 s to
+  +1.8 s), median +2 frames. *(An early check on one match suggested a
+  consistent delay; across all 7 matches there is none.)*
+- Median location error across halves: **5.5 m before, 4.6 m after**
+  correction. The largest gain is J03WOH second half (9.6 → 5.4 m, lag +46).
+- After shifting, 3–18 events per match (78 in total) fall outside the
+  tracking range and are dropped.
+- The correction is applied by default (`idsse.sync_events: true`).
+  `configs/idsse_nosync.yaml` repeats the analysis without it.
+
+### Where t0 falls: the event rule lands later in DFL
+
+Same rule as Metrica ("the winning team's first control event"):
+
+| | Metrica | IDSSE |
+|---|---|---|
+| Losing team's last control event → t0 (median) | 1.6 s | 2.9 s |
+| Turnover trigger | `RECOVERY` 82–89 % | `PASS` 55 %, `OTHER BALL ACTION` 41 %, `DUEL WON` 3 %, `RECOVERY` 0.1 % |
+| Event t0 compared with DFL's frame-level possession change | — | median **+1.7 s later** (IQR 0.8–3.3 s; no matching change within 10 s for 24 % of turnovers) |
+
+Because DFL rarely records the moment the ball is won, the event rule usually
+finds the winning team's first *pass*, after it has already controlled the
+ball. **The same written rule therefore marks a later moment in IDSSE than in
+Metrica.** For this reason the replication also uses DFL's own frame-level
+possession to define t0 (`configs/idsse_provider.yaml`). That version emits
+`PROVIDER POSSESSION` events where the label changes or play restarts, and uses
+them as the only control events.
+
+## 14. Conclusion (IDSSE)
+
+IDSSE provides high-quality 25 Hz tracking for 7 matches, with provider ball
+status and possession labels that Metrica lacks. Its main constraints are the
+dominance of one team (5 of 7 matches), the different event vocabulary, and
+event timing that needs per-half correction.

@@ -1,5 +1,8 @@
 # Literature Notes
 
+> **Superseded (Phase 4) by [`06_literature_review.md`](06_literature_review.md).**
+> This file is kept as the original Phase 1 reading log.
+
 Status key:
 - **Verified (metadata):** title, authors, venue and year confirmed from an
   online record. Full text not yet read.
@@ -16,8 +19,8 @@ No claim in the proposal may depend on a paper that is only "verified (metadata)
 | 2 | Memmert, D., Lemmink, K. A. P. M., & Sampaio, J. (2017). Current approaches to tactical performance analyses in soccer using position data. *Sports Medicine*, 47(1), 1–10. doi:10.1007/s40279-016-0562-5 | Verified (metadata) | Overview of position-data methods, including compactness measures |
 | 3 | Low, B., Coutinho, D., Gonçalves, B., Rein, R., Memmert, D., & Sampaio, J. (2020). A systematic review of collective tactical behaviours in football using positional data. *Sports Medicine*, 50(2), 343–385. | Verified (metadata) | Systematic review; tells us which metrics and contexts were already studied |
 | 4 | Welch, M., Schaerf, T. M., & Murphy, A. (2021). Collective states and their transitions in football. *PLOS ONE*. https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0251970 | Partly read (summary) | 2 matches, 1 team, 20 Hz. Defending phases were more compact and ordered. Grouped by phase, **not aligned to the moment of possession change** |
-| 5 | Zhang, G., Kempe, M., McRobert, A., Folgado, H., & Olthof, S. B. H. (2025). Navigating team tactical analysis in football: An analytical pipeline leveraging player tracking technology. *Proc. IMechE Part P (SAGE)*. doi:10.1177/17543371251392456 | **MUST READ** (paywalled, 403) | Reportedly compares centroid and surface area across in-possession, out-of-possession and transition phases. May overlap strongly with our RQ |
-| 6 | "Team Synergies in Professional Football: A Goal-Referenced Performance Indicator for Rapid Ball Recovery in Negative Transitions." *Sports* (MDPI), 14(9), 374. https://www.mdpi.com/2075-4663/14/9/374 | **MUST READ** | Uses the team centroid in negative transitions (after losing the ball) |
+| 5 | Zhang, G., Kempe, M., McRobert, A., Folgado, H., & Olthof, S. B. H. (2025). Navigating team tactical analysis in football: An analytical pipeline leveraging player tracking technology. *Proc. IMechE Part P (SAGE)*. doi:10.1177/17543371251392456 | **Read (Phase 4)** | 1 match, phase averages incl. two transition phases; suggests a delayed reaction after regaining the ball. See 06 §2 |
+| 6 | Serra, E., et al. (2026). "Team Synergies in Professional Football: A Goal-Referenced Performance Indicator for Rapid Ball Recovery in Negative Transitions." *Sports* (MDPI), 14(9), 374. https://www.mdpi.com/2075-4663/14/9/374 | **Read (Phase 4)** | Goal-referenced movement coherence (rβ) vs recovery speed; no shape time course. See 06 §3 |
 
 ## B. Tracking-data methods (data science side)
 

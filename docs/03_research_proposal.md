@@ -3,8 +3,9 @@
 **Title:** How Soccer Teams Reorganize Their Shape After a Change of
 Possession: A Reproducible Analysis of Open Positional Tracking Data
 
-**Status:** Proposal only. No experiments have been run. Everything under
-"Expected outcomes" is a hypothesis, not a result.
+**Status:** Original proposal (Phase 1), with the background updated after
+the Phase 4 literature review. Results are in `05_results.md`; sections 8–9
+below are the pre-registered expectations, kept unchanged for transparency.
 
 ## 1. Background
 
@@ -15,8 +16,12 @@ organization with metrics such as centroid, surface area and stretch index
 reports that teams are more compact when defending (e.g., Welch et al., 2021).
 Less is known, as far as we have checked, about **how quickly and how
 consistently** a team changes shape in the seconds after it wins or loses the
-ball. Two recent papers (Zhang et al., 2025; MDPI *Sports* 14(9):374) must be
-read before we claim this is a gap (see `02_literature_notes.md`).
+ball. Zhang et al. (2025) compared phase-averaged shape across in-possession,
+out-of-possession and both transition phases in one match, and suggested a
+delayed switch to attacking shape after regaining the ball. Serra et al. (2026)
+linked goal-referenced movement coherence after ball loss to recovery speed.
+Neither paper measures the frame-level time course of shape for both teams
+against matched controls (see `06_literature_review.md`).
 
 ## 2. Research question
 

@@ -1,15 +1,17 @@
 # Results
 
-Every number on this page is produced by `make pipeline` from the raw data and
-is saved in `reports/tables/`. A full rebuild from raw data (about 1 minute)
-reproduces the tables exactly.
+Every number on this page is produced from the raw data by `make pipeline`
+(Metrica, saved in `reports/tables/`) or `make replicate` /
+`make replicate-sensitivity` (IDSSE, saved in `reports/idsse*/tables/`). Full
+rebuilds from raw data (Metrica about 1.5 min, all IDSSE versions about 24 min)
+reproduce the tables exactly.
 
 ## H1: Team shape in vs out of possession (Phase 3.4)
 
 **Hypothesis (from the proposal):** during open play, teams have larger area,
 width, length and stretch index when in possession than when out of
 possession. This replicates findings already reported in the literature (see
-`02_literature_notes.md`). It is a sanity check of the pipeline, **not a novel
+`06_literature_review.md` §1). It is a sanity check of the pipeline, **not a novel
 finding**.
 
 ### Data analysed
@@ -142,13 +144,17 @@ T50 uses the late-window change as "100 %". **With the peak change as 100 %
 instead (robust to the partial rebound after ~5 s), the conclusions are the
 same:** area 1.4 s vs 3.8 s, a difference of +2.4 s [1.6, 3.2].
 
-**Main new observation (descriptive, these 3 matches): the reorganization is
+**Main observation (descriptive, these 3 matches): the reorganization is
 asymmetric.** The team that lost the ball contracted fast (half the change
 about 1 s after t0), while the team that won it expanded more slowly (half the
 change about 3.5–4 s after t0). The winning team's curve is still rising at
 +10 s, so its true T50 may be later still, which would make the asymmetry
-larger. Whether this asymmetry has been reported before is **not yet known**:
-the two "must read" papers in `02_literature_notes.md` have not been read.
+larger. **Prior work:** Zhang et al. (2025) found, in one match, that team
+shape after regaining the ball resembled the out-of-possession shape and
+suggested "a delayed team reaction to offensive behaviour". The asymmetry is
+therefore not a new discovery; this analysis quantifies it with time-resolved
+curves, both teams at once and matched controls (see `06_literature_review.md`
+§2).
 
 Figures: `h2_timecourse_area.png`, `h2_effect_all_metrics.png`.
 
@@ -214,3 +220,149 @@ for a random effect.
 - Exploratory subgroup results (pitch third, single games) are not
   multiplicity-corrected.
 - **No causal claim** beyond the turnover-versus-matched-control comparison.
+
+## Replication on IDSSE (Phase 3.6)
+
+The whole pipeline was re-run on the 7 IDSSE Bundesliga matches with
+`make replicate` (`configs/idsse.yaml`). That config **inherits every analysis
+setting** from `default.yaml` (windows, thresholds, baseline, metrics,
+bootstrap, seed) and overrides only dataset-specific choices: the event
+mapping, provider ball status, and per-half event synchronization. Data
+details are in `01_dataset_audit.md` Part B. A clean rebuild from raw data
+reproduced every result table exactly.
+
+**Three versions** are reported, because the event rule marks a later t0 in
+DFL data than in Metrica (audit section 13: median +1.7 s after DFL's own
+possession change). This was diagnosed **before** the provider-possession
+results were seen:
+
+| Version | Config | How t0 is defined |
+|---|---|---|
+| Event rule (same as Metrica) | `idsse.yaml` | Winning team's first control event, timing corrected per half |
+| Event rule, no sync correction | `idsse_nosync.yaml` | Same, raw timestamps |
+| **DFL possession** | `idsse_provider.yaml` | First frame of the winning team's possession in DFL's frame-level label |
+
+Outputs: `reports/idsse/`, `reports/idsse_nosync/`, `reports/idsse_provider/`.
+
+### H1 replicates
+
+| Area, in − out (m²) | Metrica | IDSSE event rule | IDSSE no sync | IDSSE DFL possession |
+|---|---|---|---|---|
+| Estimate [95 % CI] | +240 [213, 268] | +171 [149, 192] | +166 [145, 188] | +160 [138, 181] |
+| Team-matches with in > out | 6/6 | 14/14 | 14/14 | 14/14 |
+
+In IDSSE (event rule), width +5.2 m (d = 0.57) is again far larger than
+length +1.4 m (d = 0.15); stretch is +1.3 m (d = 0.46). Every H1 model in every
+IDSSE version converged, and every CI excludes 0. **The direction and the
+width-over-length pattern replicate; the effects are smaller than in
+Metrica.**
+
+### H2: size of the change (late window, turnover − control, area m²)
+
+| Version | Turnovers used | Lost the ball | Won the ball | Share of H1 difference (lost / won) |
+|---|---|---|---|---|
+| Metrica | 307 | −191 [−231, −152] | +226 [193, 259] | 80 % / 94 % |
+| IDSSE event rule | 717 | −102 [−133, −71] | +45 [15, 74] | 60 % / 26 % |
+| IDSSE no sync | 712 | −118 [−149, −87] | +45 [15, 75] | 71 % / 27 % |
+| **IDSSE DFL possession** | 674 | **−153 [−184, −122]** | **+177 [152, 202]** | **96 % / 111 %** |
+
+"Turnovers used" = included turnovers with usable baseline and late-window
+frames for **both** teams. Included turnovers before that: Metrica 354; IDSSE
+1,004 (event rule), 994 (no sync) and 987 (DFL possession).
+
+- **The losing team contracts in every version** (all CIs exclude 0).
+- With the event rule, the measured change is smaller, especially for the
+  winning team. With DFL possession as t0, both effects are close to the full
+  H1 difference, as in Metrica. This fits the diagnosis: a t0 that is too late
+  pushes part of the change into the baseline window, where it is subtracted
+  away.
+
+### H2: timing (paired T50 gap = won − lost, seconds)
+
+| Version | Area | Width | Stretch |
+|---|---|---|---|
+| Metrica | +2.3 [1.6, 3.1] | +3.6 [2.8, 4.4] | +3.4 [2.6, 4.2] |
+| IDSSE event rule | +3.8 [1.9, 5.4] | +4.4 [3.7, 5.0] | +6.0 [4.8, 7.6] |
+| IDSSE no sync | +3.5 [1.4, 5.0] | +4.5 [3.4, 5.1] | +5.4 [3.9, 7.4] |
+| **IDSSE DFL possession** | **+4.5 [3.8, 5.1]** | **+4.8 [4.2, 5.4]** | **+5.2 [4.4, 6.0]** |
+
+T50 here uses the late-window change as 100 %. With the peak change as 100 %,
+every gap stays positive and its CI excludes 0 (DFL possession, area:
++3.9 s [3.4, 4.4]). All comparisons are paired: both perspectives use the same
+events and the same bootstrap resamples.
+
+**The asymmetry replicates in all three IDSSE versions:** the team that wins
+the ball expands about 3.5–6 s more slowly than the team that loses it
+contracts. In IDSSE the gap is, if anything, larger.
+
+**Absolute T50 values are not comparable across providers.** In IDSSE the
+losing team reaches half its contraction at about t0 or slightly before
+(area, DFL possession: −0.3 s [−0.8, 0.2]; event rule: −1.2 s). Its area starts
+falling about 3 s before even DFL's possession change. Defending players
+appear to react while the ball is still being contested. Because t0 is
+defined differently by each provider, only the gap between the two teams
+(which share one t0) is a like-for-like comparison.
+
+Length behaves inconsistently: the gap is small and positive in the event
+versions (+0.8 s) and undefined in the DFL possession version, where the
+winning team's length barely changes (+0.1 m [−0.6, 0.8]). Length is not part
+of the replicated conclusion.
+
+### H3 replicates as inconclusive
+
+Share of variance in late change between team-matches (ICC): Metrica 0.036;
+IDSSE 0.016 (event rule), 0.014 (no sync), 0.017 (DFL possession; this model
+did not converge cleanly). Turnover-to-turnover variation dominates, and
+per-team-match T50 intervals are mostly wide. **Neither dataset can
+distinguish teams' reorganization speed.**
+
+### Exploratory pattern: where the ball is lost (area, losing team)
+
+| Ball lost in own … third | Metrica | IDSSE event rule | IDSSE DFL possession |
+|---|---|---|---|
+| Defensive | −135 [−327, 57] (n = 24) | +1 [−110, 111] (n = 80) | −139 [−290, 13] (n = 49) |
+| Middle | **−269** [−331, −206] (n = 119) | **−197** [−248, −146] (n = 310) | **−269** [−324, −215] (n = 268) |
+| Attacking | −129 [−178, −79] (n = 164) | −33 [−69, 4] (n = 327) | −66 [−101, −31] (n = 357) |
+
+Losing the ball in midfield produced the largest contraction in both
+datasets; losing it high up the pitch produced a smaller one. This pattern was
+found in Metrica and then seen again in IDSSE. It was not a pre-specified
+hypothesis and is not multiplicity-corrected.
+
+### Other sensitivity checks (IDSSE)
+
+- Excluding the 93 turnovers won by a goalkeeper (event rule): −113 m²
+  [−145, −80], same conclusion. This check is impossible in the DFL possession
+  version, because the label does not identify a player.
+- Baseline −5 to −3 s: −113 (event rule) and −160 (DFL possession); same
+  conclusions.
+- Single matches (area, losing team, DFL possession): negative in every match.
+  The CI excludes 0 in 5 of 7; the exceptions are J03WR9 (−61 [−139, 18]) and
+  J03WN1 (only 10 usable turnovers because of the red card).
+
+### What the replication shows
+
+1. **Robust:** teams are larger in possession, mainly wider (H1). After a
+   turnover, the losing team contracts and the winning team expands, and **the
+   contraction is faster than the expansion**. All three hold in a second,
+   independent dataset from another league and provider, under three t0
+   definitions.
+2. **Depends on definitions:** the size of the turnover effect and absolute
+   T50 values depend on how each provider's data defines the moment of
+   possession change. The DFL possession version agrees best with Metrica.
+3. **Not supported by either dataset:** stable differences between teams (H3).
+
+### Limitations of the replication
+
+- Fortuna Düsseldorf is in 5 of the 7 matches, so IDSSE mainly describes one
+  team and its opponents.
+- The t0 definitions differ between datasets (event `RECOVERY` in Metrica, DFL
+  possession label or first control event in IDSSE). The asymmetry holds under
+  every definition, but effect sizes do not transfer one-to-one.
+- The event synchronization is a simple constant shift per half. Event
+  timing errors inside a half are not corrected.
+- The IDSSE files come from a mirror pinned by checksum. They have not yet been
+  compared with the original figshare deposit.
+- The asymmetry was tentatively suggested before (Zhang et al., 2025, one
+  match, phase averages). The literature search behind this was targeted, not
+  systematic (`06_literature_review.md`), so other related work may exist.
