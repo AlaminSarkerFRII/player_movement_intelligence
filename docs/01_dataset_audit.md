@@ -89,18 +89,17 @@ moments, which the research question needs.
 
 ## 6. Open questions (TO VERIFY in Phase 3)
 
-1. **Why is the ball missing in about 40 % of frames?** Hypothesis: the ball is
-   not tracked while play is stopped (out of play, set-piece setup). Check this
-   against `BALL OUT` → `SET PIECE` event intervals. If true, it gives us a
-   ball-in-play filter.
-2. **Direction of play:** teams switch ends at half-time. Coordinates must be
-   flipped so each team always attacks in the same direction.
+1. ~~**Why is the ball missing in about 40 % of frames?**~~ **Partly confirmed
+   (Phase 3.2).** Missing ball frames agree with event-derived stoppages in
+   85–93 % of frames, but not fully. See section 8.
+2. ~~**Direction of play**~~ **Resolved (Phase 3.2).** Goalkeepers switch ends
+   at half-time in all games. Periods are rotated 180° so the home team always
+   attacks towards +x.
 3. ~~**Goalkeeper identification**~~ **Resolved (Phase 3.1).** A heuristic
    (the player furthest from the centre line on average) finds Player11 and
    Player25 in Games 1–2, the first column of each file, and P3578 and P3595
    in Game 3, exactly the goalkeepers labelled in the Game 3 metadata.
-4. **Tracking quality:** check for physically impossible speeds (for example,
-   above 12 m/s) that would indicate tracking noise.
+4. ~~**Tracking quality**~~ **Checked (Phase 3.2).** See section 8.
 
 ## 7. Findings from loading the data (Phase 3.1)
 
@@ -129,7 +128,46 @@ Produced by `make interim` (summary table) and `make test-data`.
   preprocessing.
 - **Game 3 teams:** "Team A" (`FIFATMA`) is home and "Team B" (`FIFATMB`) is away.
 
-## 8. Conclusion
+## 8. Findings from preprocessing (Phase 3.2)
+
+Produced by `make preprocess`; table saved in `reports/tables/preprocessing_qc.csv`.
+
+| | Game 1 | Game 2 | Game 3 |
+|---|---|---|---|
+| Periods rotated 180° | 2 | 1 | 1 |
+| Player rows failing speed QC (raw > 12 m/s) | 0.014 % | 0.035 % | 0.024 % |
+| Frames with ≥ 1 player failing QC | 0.30 % | 0.74 % | 0.51 % |
+| Ball missing (after filling gaps ≤ 1 s) | 38.9 % | 40.8 % | 32.1 % |
+| Play dead according to events | 41.9 % | 35.9 % | 29.9 % |
+| Agreement: ball tracked vs event-live | 85.0 % | 85.8 % | 93.3 % |
+| **Ball in play (both signals agree)** | **50.3 min** | **51.3 min** | **62.9 min** |
+| Median player speed in play | 1.96 m/s | 1.84 m/s | 1.98 m/s |
+
+**Speed outliers.** Raw speeds above 12 m/s come in short bursts (median 6
+frames) at a *constant* speed, sometimes above 100 m/s. That pattern suggests
+the provider linearly interpolated across tracking gaps. Many bursts occur
+just after a period starts, when play is dead anyway. These rows are flagged
+(`qc_ok = False`), and velocities within ±3 frames are set to missing.
+Positions are not changed.
+
+**Remaining limitation.** After QC, the median per-player top speed in play
+is 9.1, 9.7 and 11.1 m/s (Games 1–3). The Game 3 value is high for
+footballers, so some interpolation artifacts probably remain just below the
+12 m/s threshold. Speed is not a primary outcome of this project. Any
+speed-based result must be checked for sensitivity to this threshold.
+
+**Ball in play.** Neither signal is reliable on its own.
+- About 92 % of the frames where the ball is missing while events say play is
+  live fall in runs longer than 5 s (up to 130 s). These are probably stoppages
+  the event data does not record, such as injuries or substitutions.
+- Frames where the ball is tracked while events say play is dead come in short
+  runs (median about 1 s), probably small timing offsets around restarts.
+
+**Decision:** `in_play = event_live AND ball_tracked`. This is conservative: it
+excludes uncertain frames and so reduces sample size rather than adding noise.
+The 1 s gap-filling threshold is part of the sensitivity analysis.
+
+## 9. Conclusion
 
 The data contains **continuous 25 Hz positions for all players and the ball,
 synchronized with event data**. It is suitable for the primary research

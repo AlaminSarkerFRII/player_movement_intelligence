@@ -17,8 +17,18 @@ pitch:
 
 tracking:
   fps: 25                     # verified in docs/01_dataset_audit.md
-  smoothing_window_s: 0.28    # sensitivity: Savitzky-Golay window for positions
-  max_speed_ms: 12.0          # speeds above this are flagged as tracking errors
+  smoothing_window_s: 0.28    # sensitivity: Savitzky-Golay window for velocities (7 frames)
+  smoothing_polyorder: 2
+  max_speed_ms: 12.0          # raw frame-to-frame speeds above this fail QC
+
+# Ball in play = event data says play is live AND the ball is tracked.
+# Neither signal alone is reliable (see docs/01_dataset_audit.md section 8).
+ball_in_play:
+  max_ball_gap_s: 1.0         # sensitivity: shorter ball gaps are interpolated
+  stop_types: ["BALL OUT", "FAULT RECEIVED"]
+  stop_shot_subtypes: ["OUT", "GOAL"]   # SHOT events whose subtype contains these
+  restart_types: ["SET PIECE"]
+  restart_subtypes: ["GOAL KICK"]       # goal kicks are coded as PASS / BALL LOST
 
 datasets:
   metrica:

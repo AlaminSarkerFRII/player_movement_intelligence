@@ -39,6 +39,7 @@ player-movement-intelligence/
 ├── scripts/
 │   ├── download_data.sh      # fetch raw data (pinned versions)
 │   ├── build_interim.py      # raw → validated common-format parquet (make interim)
+│   ├── preprocess.py         # interim → data/processed + QC table (make preprocess)
 │   └── run_pipeline.py       # (Phase 3) end-to-end: raw → figures
 ├── src/pmi/
 │   ├── config.py             # load YAML, resolve paths, set seeds
@@ -46,7 +47,7 @@ player-movement-intelligence/
 │   │   ├── common.py         #   schema, coordinate conversion, goalkeeper detection, validation, parquet I/O
 │   │   ├── metrica.py        #   Games 1–2 CSV and Game 3 via kloppy
 │   │   └── idsse.py          #   (later) replication dataset
-│   ├── preprocessing.py      # (Phase 3) flip direction, smoothing, speed QC
+│   ├── preprocessing.py      # direction (180° rotation), velocities + speed QC, ball in play
 │   ├── possession.py         # (Phase 3) ball-in-play, possession, turnovers
 │   ├── metrics.py            # (Phase 3) length, width, hull area, stretch index
 │   ├── analysis/             # (Phase 3)
