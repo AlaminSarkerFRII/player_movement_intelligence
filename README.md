@@ -3,7 +3,7 @@
 **How soccer teams reorganize their shape after a change of possession: a
 reproducible analysis of open positional tracking data.**
 
-> Status: work in progress. Pipeline and H1 (replication check) complete; H2 in progress.
+> Status: work in progress. H1 (replication) and H2/H3 analyses complete on 3 Metrica matches; replication on a second dataset pending.
 
 ## Quick start
 
@@ -13,7 +13,7 @@ reproducible analysis of open positional tracking data.**
 make setup     # create .venv with the exact locked dependencies (uv sync)
 make data      # download Metrica Sports sample data into data/raw/
 make test      # verify the environment
-make pipeline  # raw data -> results tables and figures (~1 min)
+make pipeline  # raw data -> results tables and figures (~1.5 min)
 make jupyter   # optional: JupyterLab
 ```
 

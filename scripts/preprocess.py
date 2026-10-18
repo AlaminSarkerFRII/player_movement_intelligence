@@ -24,8 +24,7 @@ def main() -> None:
     cfg = load_config(args.config)
 
     rows = []
-    for game in cfg["datasets"]["metrica"]["games"]:
-        match_id = f"metrica_{game}"
+    for match_id in cfg.match_ids:
         print(f"Preprocessing {match_id} ...", flush=True)
         pm = preprocess_match(read_interim(match_id, cfg), cfg)
         write_processed(pm, cfg)

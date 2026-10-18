@@ -24,6 +24,7 @@ tracking:
 # Ball in play = event data says play is live AND the ball is tracked.
 # Neither signal alone is reliable (see docs/01_dataset_audit.md section 8).
 ball_in_play:
+  source: events              # "events": derived as below; "provider": ball status in tracking
   max_ball_gap_s: 1.0         # sensitivity: shorter ball gaps are interpolated
   stop_types: ["BALL OUT", "FAULT RECEIVED"]
   stop_shot_subtypes: ["OUT", "GOAL"]   # SHOT events whose subtype contains these
@@ -31,9 +32,12 @@ ball_in_play:
   restart_types: ["SET PIECE"]
   restart_subtypes: ["GOAL KICK"]       # goal kicks are coded as PASS / BALL LOST
 
+dataset: metrica          # active dataset; configs/idsse.yaml switches to idsse
 datasets:
   metrica:
-    games: [1, 2, 3]
+    matches: [1, 2, 3]
+  idsse:                  # Bassek et al. (2025), DFL match ids
+    matches: [J03WMX, J03WN1, J03WOH, J03WOY, J03WPY, J03WQQ, J03WR9]
 
 possession:
   # Events showing which team has the ball. CARRY is excluded: only Game 3 has it.
@@ -48,5 +52,13 @@ metrics:
 timecourse:
   window_before_s: 5.0
   window_after_s: 10.0
+  # BALL LOST precedes t0 (RECOVERY) by ~1.6 s, so the baseline ends at -2 s.
+  baseline_window_s: [-5.0, -2.0]     # sensitivity
+  late_window_s: [5.0, 10.0]          # "settled" state after the turnover
+  min_baseline_coverage: 0.5          # share of baseline frames that must be usable
   n_control_samples_per_turnover: 5
   n_bootstrap: 2000
+
+idsse:                    # used only when dataset: idsse (see configs/idsse.yaml)
+  sync_events: true
+  max_sync_lag_s: 4.0

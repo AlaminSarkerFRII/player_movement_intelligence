@@ -1,0 +1,11 @@
+# Sensitivity: IDSSE replication WITHOUT removing the event-vs-tracking lag.
+base: idsse.yaml
+
+paths:
+  interim: data/interim_idsse_nosync
+  processed: data/processed_idsse_nosync
+  figures: reports/idsse_nosync/figures
+  tables: reports/idsse_nosync/tables
+
+idsse:
+  sync_events: false

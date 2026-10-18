@@ -31,13 +31,24 @@ from pmi.preprocessing import read_processed
 
 def plot_spell_durations(spells: pd.DataFrame, cfg) -> None:
     """ECDF of in-play spell duration per match (log x)."""
-    colors = viz.game_colors(spells["match_id"].unique().tolist())
+    ids = sorted(spells["match_id"].unique())
+    few = len(ids) <= len(viz.SERIES)  # beyond three, matches are grey and the pool is coloured
+    colors = viz.game_colors(ids) if few else {}
     fig, ax = plt.subplots(figsize=(7, 4))
-    for mid, s in spells[spells["in_play_s"] > 0].groupby("match_id"):
+    live = spells[spells["in_play_s"] > 0]
+    for i, (mid, s) in enumerate(live.groupby("match_id")):
         d = np.sort(s["in_play_s"].to_numpy())
         y = np.arange(1, len(d) + 1) / len(d)
-        ax.step(d, y, where="post", color=colors[mid],
-                label=f"{mid}  (median {np.median(d):.1f} s, n={len(d)})")
+        if few:
+            ax.step(d, y, where="post", color=colors[mid],
+                    label=f"{mid}  (median {np.median(d):.1f} s, n={len(d)})")
+        else:
+            ax.step(d, y, where="post", color=viz.GRID, lw=1.2,
+                    label="each match" if i == 0 else None)
+    if not few:
+        d = np.sort(live["in_play_s"].to_numpy())
+        ax.step(d, np.arange(1, len(d) + 1) / len(d), where="post", color=viz.SERIES[0],
+                label=f"all {len(ids)} matches  (median {np.median(d):.1f} s, n={len(d)})")
     min_len = cfg["possession"]["min_possession_length_s"]
     ax.axvline(min_len, color=viz.TEXT_SECONDARY, lw=1, ls="--")
     ax.text(min_len * 1.08, 0.03, f"{min_len:g} s inclusion threshold", fontsize=8,
@@ -54,18 +65,24 @@ def plot_spell_durations(spells: pd.DataFrame, cfg) -> None:
 def plot_turnover_locations(turnovers: pd.DataFrame, cfg) -> None:
     """Where included turnovers happen, from the winning team's view (attacking right)."""
     inc = turnovers[turnovers["included"]]
-    colors = viz.game_colors(turnovers["match_id"].unique().tolist())
+    ids = sorted(turnovers["match_id"].unique())
+    colors = (viz.game_colors(ids) if len(ids) <= len(viz.SERIES)
+              else dict.fromkeys(ids, viz.SERIES[0]))
     fig, ax = plt.subplots(figsize=(8, 5.6))
     viz.draw_pitch(ax, cfg["pitch"]["length_m"], cfg["pitch"]["width_m"])
     third = cfg["pitch"]["length_m"] / 6
     for x in (-third, third):
         ax.axvline(x, color=viz.PITCH_LINE, lw=1, ls=":", zorder=0)
     sign = np.where(inc["won_team"] == "home", 1.0, -1.0)
+    many = len(ids) > len(viz.SERIES)
     for mid in sorted(inc["match_id"].unique()):
         m = (inc["match_id"] == mid).to_numpy()
-        ax.scatter(inc.loc[m, "x_att_won"], sign[m] * inc.loc[m, "ball_y"], s=36,
-                   color=colors[mid], edgecolor=viz.SURFACE, linewidth=1.5,
-                   alpha=0.9, label=f"{mid} (n={m.sum()})", zorder=2)
+        label = None if many else f"{mid} (n={m.sum()})"
+        ax.scatter(inc.loc[m, "x_att_won"], sign[m] * inc.loc[m, "ball_y"],
+                   s=24 if many else 36, color=colors[mid], edgecolor=viz.SURFACE,
+                   linewidth=1.2, alpha=0.8, label=label, zorder=2)
+    if many:
+        ax.scatter([], [], s=24, color=viz.SERIES[0], label=f"all {len(ids)} matches")
     counts = inc["zone_won"].value_counts()
     for label, xc in (("defensive", -2 * third), ("middle", 0), ("attacking", 2 * third)):
         ax.text(xc, cfg["pitch"]["width_m"] / 2 + 1.2, f"{label} third: {counts.get(label, 0)}",
@@ -89,8 +106,7 @@ def main() -> None:
     out = cfg.path("processed")
 
     all_spells, all_turnovers, funnels, summary = [], [], [], []
-    for game in cfg["datasets"]["metrica"]["games"]:
-        match_id = f"metrica_{game}"
+    for match_id in cfg.match_ids:
         pm = read_processed(match_id, cfg)
         spells = possession_spells(
             pm.events, pm.frames, cfg["possession"]["control_event_types"], fps

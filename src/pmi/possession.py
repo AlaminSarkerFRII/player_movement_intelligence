@@ -83,6 +83,7 @@ def possession_spells(
         start_frame=("frame", "first"),
         start_type=("type", "first"),
         start_subtype=("subtype", "first"),
+        start_player=("player_id", "first"),
         n_events=("type", "size"),
         open_play_change=("open_play_change", "first"),
     ).reset_index()
@@ -143,6 +144,7 @@ def find_turnovers(
         next_spell_s=to["in_play_s"],
         trigger=to["start_type"],
         trigger_subtype=to["start_subtype"],
+        trigger_player_id=to["start_player"],
     )
     # Seconds since the previous open-play turnover in the same period.
     gap = to.groupby("period")["t0_frame"].diff() / fps
@@ -165,6 +167,7 @@ def find_turnovers(
 
     cols = [
         "match_id", "period", "t0_frame", "won_team", "lost_team", "trigger", "trigger_subtype",
+        "trigger_player_id",
         "prev_spell_s", "next_spell_s", "gap_prev_s", "ball_x", "ball_y", "x_att_won",
         "zone_won", "ok_prev_spell", "ok_next_spell", "ok_gap", "ok_ball", "included",
     ]

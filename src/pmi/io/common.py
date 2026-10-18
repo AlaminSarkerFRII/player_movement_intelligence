@@ -133,6 +133,61 @@ def assign_goalkeepers(tracking: pd.DataFrame, min_share: float = 0.5) -> pd.Dat
     return tracking
 
 
+def build_match(
+    match_id: str,
+    wide: pd.DataFrame,
+    players: dict[str, str],
+    events: pd.DataFrame,
+    meta: dict[str, Any],
+    cfg: Config,
+    ball_extra: dict[str, pd.Series] | None = None,
+) -> MatchData:
+    """Turn a loader's provider-neutral pieces into a :class:`MatchData`.
+
+    ``wide`` has ``period``, ``frame`` (consecutive within the match) and
+    ``{key}_x/_y`` columns in [0, 1] coordinates (origin top-left, y down) for
+    the ball and every player; ``events`` uses the same coordinates.
+    ``ball_extra`` adds per-frame columns to the ball table (e.g. provider ball status).
+    """
+    fps = cfg["tracking"]["fps"]
+    length, width = cfg["pitch"]["length_m"], cfg["pitch"]["width_m"]
+    wide = wide.copy()
+    for key in ["ball", *players]:
+        wide[f"{key}_x"], wide[f"{key}_y"] = normalized_to_meters(
+            wide[f"{key}_x"], wide[f"{key}_y"], length, width
+        )
+    starts = period_start_frames(wide["frame"], wide["period"])
+
+    tracking = assign_goalkeepers(wide_to_long(wide, players, match_id, fps))
+
+    ball = pd.DataFrame({
+        "match_id": match_id,
+        "period": wide["period"].to_numpy(),
+        "frame": wide["frame"].to_numpy(),
+        "time_s": frames_to_period_time(wide["frame"], wide["period"], starts, fps).to_numpy(),
+        "x": wide["ball_x"].to_numpy(),
+        "y": wide["ball_y"].to_numpy(),
+    })
+    for name, values in (ball_extra or {}).items():
+        ball[name] = np.asarray(values)
+
+    events = events.copy()
+    events.insert(0, "match_id", match_id)
+    events["time_s"] = frames_to_period_time(events["frame"], events["period"], starts, fps)
+    events["end_time_s"] = frames_to_period_time(
+        events["end_frame"].astype(float), events["period"], starts, fps
+    )
+    events["x"], events["y"] = normalized_to_meters(events["x"], events["y"], length, width)
+    events["end_x"], events["end_y"] = normalized_to_meters(
+        events["end_x"], events["end_y"], length, width
+    )
+
+    return MatchData(
+        match_id=match_id, fps=fps, tracking=tracking, ball=ball,
+        events=events[EVENT_COLUMNS], meta={"period_start_frames": starts, **meta},
+    )
+
+
 def _require_columns(df: pd.DataFrame, columns: list[str], name: str) -> None:
     missing = [c for c in columns if c not in df.columns]
     if missing:

@@ -29,3 +29,14 @@ def test_seed_is_reproducible():
     a = set_seed(42).normal(size=5)
     b = set_seed(42).normal(size=5)
     assert (a == b).all()
+
+
+def test_replication_config_inherits_analysis_settings():
+    base, rep = load_config(), load_config(PROJECT_ROOT / "configs" / "idsse.yaml")
+    assert rep.dataset == "idsse" and len(rep.match_ids) == 7
+    assert rep.match_ids[0] == "idsse_J03WMX"
+    for key in ("timecourse", "metrics", "tracking", "pitch", "seed"):
+        assert rep[key] == base[key]  # identical analysis settings
+    assert rep["possession"]["min_gap_between_turnovers_s"] == base["possession"][
+        "min_gap_between_turnovers_s"]
+    assert rep.path("tables") != base.path("tables")  # outputs kept apart

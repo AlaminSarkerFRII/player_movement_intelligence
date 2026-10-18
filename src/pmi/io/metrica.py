@@ -15,15 +15,7 @@ import numpy as np
 import pandas as pd
 
 from pmi.config import Config
-from pmi.io.common import (
-    EVENT_COLUMNS,
-    MatchData,
-    assign_goalkeepers,
-    frames_to_period_time,
-    normalized_to_meters,
-    period_start_frames,
-    wide_to_long,
-)
+from pmi.io.common import MatchData, build_match
 
 GAME_DIR = "metrica/data/Sample_Game_{game}"
 
@@ -155,38 +147,4 @@ def load_match(game: int, cfg: Config) -> MatchData:
     else:
         raise ValueError(f"Unknown Metrica game: {game}")
 
-    match_id = f"metrica_{game}"
-    fps = cfg["tracking"]["fps"]
-    length, width = cfg["pitch"]["length_m"], cfg["pitch"]["width_m"]
-
-    for key in ["ball", *players]:
-        wide[f"{key}_x"], wide[f"{key}_y"] = normalized_to_meters(
-            wide[f"{key}_x"], wide[f"{key}_y"], length, width
-        )
-    starts = period_start_frames(wide["frame"], wide["period"])
-
-    tracking = assign_goalkeepers(wide_to_long(wide, players, match_id, fps))
-
-    ball = pd.DataFrame({
-        "match_id": match_id,
-        "period": wide["period"],
-        "frame": wide["frame"],
-        "time_s": frames_to_period_time(wide["frame"], wide["period"], starts, fps),
-        "x": wide["ball_x"],
-        "y": wide["ball_y"],
-    })
-
-    events.insert(0, "match_id", match_id)
-    events["time_s"] = frames_to_period_time(events["frame"], events["period"], starts, fps)
-    events["end_time_s"] = frames_to_period_time(
-        events["end_frame"].astype(float), events["period"], starts, fps
-    )
-    events["x"], events["y"] = normalized_to_meters(events["x"], events["y"], length, width)
-    events["end_x"], events["end_y"] = normalized_to_meters(
-        events["end_x"], events["end_y"], length, width
-    )
-
-    return MatchData(
-        match_id=match_id, fps=fps, tracking=tracking, ball=ball,
-        events=events[EVENT_COLUMNS], meta={"period_start_frames": starts, **meta},
-    )
+    return build_match(f"metrica_{game}", wide, players, events, meta, cfg)

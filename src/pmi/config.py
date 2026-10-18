@@ -36,13 +36,41 @@ class Config:
     def __getitem__(self, key: str) -> Any:
         return self.raw[key]
 
+    @property
+    def dataset(self) -> str:
+        return self.raw["dataset"]
+
+    @property
+    def match_ids(self) -> list[str]:
+        """Match ids of the active dataset, e.g. ``metrica_1`` or ``idsse_J03WMX``."""
+        ds = self.raw["datasets"][self.dataset]
+        return [f"{self.dataset}_{m}" for m in ds["matches"]]
+
+
+def _deep_merge(base: dict, override: dict) -> dict:
+    out = dict(base)
+    for key, value in override.items():
+        if isinstance(value, dict) and isinstance(out.get(key), dict):
+            out[key] = _deep_merge(out[key], value)
+        else:
+            out[key] = value
+    return out
+
+
+def _read(source: Path) -> dict[str, Any]:
+    """Read YAML; a top-level ``base:`` key names a file whose values this one overrides."""
+    with source.open() as f:
+        raw = yaml.safe_load(f) or {}
+    base = raw.pop("base", None)
+    if base:
+        raw = _deep_merge(_read((source.parent / base).resolve()), raw)
+    return raw
+
 
 def load_config(path: str | Path | None = None) -> Config:
     """Read a YAML config file; defaults to ``configs/default.yaml``."""
     source = Path(path) if path else DEFAULT_CONFIG
-    with source.open() as f:
-        raw = yaml.safe_load(f)
-    return Config(raw=raw, source=source.resolve())
+    return Config(raw=_read(source), source=source.resolve())
 
 
 def set_seed(seed: int) -> np.random.Generator:

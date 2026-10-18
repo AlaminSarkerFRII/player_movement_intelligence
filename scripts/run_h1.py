@@ -67,8 +67,7 @@ def main() -> None:
     tables.mkdir(parents=True, exist_ok=True)
 
     parts = []
-    for game in cfg["datasets"]["metrica"]["games"]:
-        mid = f"metrica_{game}"
+    for mid in cfg.match_ids:
         parts.append(spell_shape_table(
             pd.read_parquet(proc / f"{mid}_shape.parquet"),
             pd.read_parquet(proc / f"{mid}_possession.parquet"),

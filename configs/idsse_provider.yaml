@@ -1,0 +1,12 @@
+# Sensitivity: possession (and therefore t0) from DFL's own per-frame possession
+# label in the tracking data, instead of from events. Independent of event timing.
+# Reuses data/interim from configs/idsse.yaml; run from `preprocess` onward.
+base: idsse.yaml
+
+paths:
+  processed: data/processed_idsse_provider
+  figures: reports/idsse_provider/figures
+  tables: reports/idsse_provider/tables
+
+possession:
+  control_event_types: ["PROVIDER POSSESSION"]

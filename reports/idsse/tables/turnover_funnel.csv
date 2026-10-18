@@ -1,0 +1,6 @@
+step,idsse_J03WMX,idsse_J03WN1,idsse_J03WOH,idsse_J03WOY,idsse_J03WPY,idsse_J03WQQ,idsse_J03WR9,total
+open-play turnovers,280,274,246,286,247,256,214,1803
+losing team had the ball >= min length,216,214,199,228,207,217,183,1464
+winning team kept the ball >= min length,167,169,154,173,173,167,145,1148
+>= min gap since previous turnover,143,150,138,140,148,153,132,1004
+ball position known at t0,143,150,138,140,148,153,132,1004

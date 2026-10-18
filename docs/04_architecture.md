@@ -43,6 +43,7 @@ player-movement-intelligence/
 │   ├── build_possession.py   # spells, turnovers, EDA figures (make possession)
 │   ├── build_shape.py        # per-frame shape metrics + example frame (make shape)
 │   ├── run_h1.py             # H1 tables and figure (make h1)
+│   ├── run_h2.py             # H2/H3 tables, sensitivity, figures (make h2)
 │   └── run_pipeline.py       # (Phase 3) end-to-end: raw → figures
 ├── src/pmi/
 │   ├── config.py             # load YAML, resolve paths, set seeds
@@ -55,7 +56,7 @@ player-movement-intelligence/
 │   ├── metrics.py            # length, width, hull area, stretch index, centroid
 │   ├── analysis/             # (Phase 3)
 │   │   ├── static.py         #   H1: spell-level mixed models + sensitivity variants
-│   │   ├── timecourse.py     #   H2: turnover-aligned curves + controls
+│   │   ├── timecourse.py     #   H2/H3: matched controls, windows, bootstrap curves, T50, models
 │   │   └── classify.py       #   optional: leave-one-match-out classifier
 │   └── viz.py                # shared figure style, validated colours, pitch drawing
 ├── tests/                    # pytest unit tests, one file per module

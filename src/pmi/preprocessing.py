@@ -211,14 +211,19 @@ def preprocess_match(match: MatchData, cfg: Config) -> ProcessedMatch:
     frames = fill_short_ball_gaps(match.ball, max_gap).rename(
         columns={"x": "ball_x", "y": "ball_y"}
     )
-    frames["event_live"] = event_live_mask(frames, match.events, bip_cfg)
+    live_source = bip_cfg.get("source", "events")
+    if live_source == "provider":
+        # The provider's own ball status (in play / dead), e.g. DFL tracking data.
+        frames["event_live"] = frames["alive"].astype(bool)
+    else:
+        frames["event_live"] = event_live_mask(frames, match.events, bip_cfg)
     frames["in_play"] = frames["event_live"] & frames["ball_tracked"]
     frame_ok = tracking.groupby("frame")["qc_ok"].all()
     frames["qc_ok"] = frames["frame"].map(frame_ok).fillna(True).astype(bool)
 
     return ProcessedMatch(
         match_id=match.match_id, fps=fps, tracking=tracking, frames=frames,
-        events=match.events, meta=match.meta,
+        events=match.events, meta={**match.meta, "live_source": live_source},
     )
 
 
@@ -233,9 +238,11 @@ def qc_summary(pm: ProcessedMatch) -> dict[str, Any]:
         "frames_failed_qc_pct": round(100 * (~f["qc_ok"]).mean(), 2),
         "ball_missing_after_fill_pct": round(100 * raw_missing.mean(), 1),
         "event_dead_pct": round(100 * (~f["event_live"]).mean(), 1),
+        # Only meaningful when "live" comes from events (not the provider's ball status).
         "agreement_ball_vs_events_pct": round(
             100 * (f["ball_tracked"] == f["event_live"]).mean(), 1
-        ),
+        ) if pm.meta.get("live_source", "events") == "events" else None,
+        "live_source": pm.meta.get("live_source", "events"),
         "in_play_minutes": round(f["in_play"].sum() / pm.fps / 60, 1),
         "in_play_pct": round(100 * f["in_play"].mean(), 1),
         "median_speed_in_play_ms": round(

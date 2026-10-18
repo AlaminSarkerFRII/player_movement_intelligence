@@ -1,0 +1,24 @@
+# Replication on IDSSE (Bassek et al., 2025): 7 Bundesliga / 2. Bundesliga matches.
+# Inherits EVERY analysis setting from default.yaml (windows, thresholds, seeds,
+# bootstrap, metrics). Only dataset-specific choices are overridden below.
+base: default.yaml
+
+dataset: idsse
+
+paths:
+  figures: reports/idsse/figures
+  tables: reports/idsse/tables
+
+# DFL tracking contains the provider's own ball status for every frame.
+ball_in_play:
+  source: provider
+
+# Same principle as Metrica (events showing which team has the ball), mapped to
+# the DFL vocabulary. See pmi.io.idsse.map_event for the mapping table.
+possession:
+  control_event_types: ["PASS", "SET PIECE", "SHOT", "RECOVERY", "DUEL WON",
+                        "OTHER BALL ACTION"]
+
+idsse:
+  sync_events: true       # remove the estimated event-vs-tracking lag (sensitivity: false)
+  max_sync_lag_s: 4.0

@@ -51,7 +51,8 @@ def plot_example_frame(tracking: pd.DataFrame, frames: pd.DataFrame, shape: pd.D
             f"{team} ({state}): length {r['length']:.0f} m, width {r['width']:.0f} m, "
             f"area {r['area']:.0f} m², stretch {r['stretch']:.1f} m"))
     ax.scatter(ball["ball_x"], ball["ball_y"], s=30, color=viz.TEXT, zorder=5)
-    ax.set_title(f"Team shape in one frame (metrica_1, frame {frame}); home attacks →", pad=8)
+    match_id = tracking["match_id"].iloc[0]
+    ax.set_title(f"Team shape in one frame ({match_id}, frame {frame}); home attacks →", pad=8)
     ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.01), ncol=1, fontsize=9)
     ax.text(0.99, 0.01, "filled = outfield (hull), hollow = goalkeeper (excluded), X = centroid",
             transform=ax.transAxes, ha="right", va="bottom", fontsize=8,
@@ -66,13 +67,12 @@ def main() -> None:
     cfg = load_config(args.config)
     proc = cfg.path("processed")
 
-    for game in cfg["datasets"]["metrica"]["games"]:
-        match_id = f"metrica_{game}"
+    for match_id in cfg.match_ids:
         print(f"Shape metrics for {match_id} ...", flush=True)
         tracking = pd.read_parquet(proc / f"{match_id}_tracking.parquet")
         shape = team_shape(tracking, cfg["metrics"]["exclude_goalkeeper"])
         shape.to_parquet(proc / f"{match_id}_shape.parquet", index=False)
-        if game == cfg["datasets"]["metrica"]["games"][0]:
+        if match_id == cfg.match_ids[0]:
             viz.apply_style()
             plot_example_frame(
                 tracking, pd.read_parquet(proc / f"{match_id}_frames.parquet"), shape,

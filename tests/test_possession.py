@@ -31,8 +31,8 @@ def _frames(n=300, dead=()):
 
 def _events(rows):
     return pd.DataFrame(
-        [{"match_id": "m", "period": 1, "frame": f, "team": t, "type": ty, "subtype": None}
-         for f, t, ty in rows]
+        [{"match_id": "m", "period": 1, "frame": f, "team": t, "type": ty, "subtype": None,
+          "player_id": f"{t}_player"} for f, t, ty in rows]
     )
 
 
