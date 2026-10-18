@@ -2,7 +2,7 @@
 export UID := $(shell id -u)
 export GID := $(shell id -g)
 
-.PHONY: setup lock data interim preprocess possession pipeline test test-data lint jupyter docker-build docker-test docker-shell docker-jupyter
+.PHONY: setup lock data interim preprocess possession shape h1 pipeline test test-data lint jupyter docker-build docker-test docker-shell docker-jupyter
 
 setup:            ## Create .venv and install locked dependencies
 	uv sync
@@ -22,7 +22,13 @@ preprocess:       ## Direction, velocities + QC, ball in play -> data/processed
 possession:       ## Possession spells, turnovers, EDA figures -> data/processed, reports/
 	uv run python scripts/build_possession.py
 
-pipeline: interim preprocess possession  ## Run every step from raw data
+shape:            ## Per-frame team shape metrics + example frame figure
+	uv run python scripts/build_shape.py
+
+h1:               ## H1: shape in vs out of possession (mixed models, tables, figure)
+	uv run python scripts/run_h1.py
+
+pipeline: interim preprocess possession shape h1  ## Run every step from raw data
 
 test:             ## Run the fast unit tests
 	uv run pytest -q

@@ -41,6 +41,8 @@ player-movement-intelligence/
 │   ├── build_interim.py      # raw → validated common-format parquet (make interim)
 │   ├── preprocess.py         # interim → data/processed + QC table (make preprocess)
 │   ├── build_possession.py   # spells, turnovers, EDA figures (make possession)
+│   ├── build_shape.py        # per-frame shape metrics + example frame (make shape)
+│   ├── run_h1.py             # H1 tables and figure (make h1)
 │   └── run_pipeline.py       # (Phase 3) end-to-end: raw → figures
 ├── src/pmi/
 │   ├── config.py             # load YAML, resolve paths, set seeds
@@ -50,9 +52,9 @@ player-movement-intelligence/
 │   │   └── idsse.py          #   (later) replication dataset
 │   ├── preprocessing.py      # direction (180° rotation), velocities + speed QC, ball in play
 │   ├── possession.py         # possession spells, per-frame possession, turnovers + funnel
-│   ├── metrics.py            # (Phase 3) length, width, hull area, stretch index
+│   ├── metrics.py            # length, width, hull area, stretch index, centroid
 │   ├── analysis/             # (Phase 3)
-│   │   ├── static.py         #   H1: possession-sequence mixed models
+│   │   ├── static.py         #   H1: spell-level mixed models + sensitivity variants
 │   │   ├── timecourse.py     #   H2: turnover-aligned curves + controls
 │   │   └── classify.py       #   optional: leave-one-match-out classifier
 │   └── viz.py                # shared figure style, validated colours, pitch drawing

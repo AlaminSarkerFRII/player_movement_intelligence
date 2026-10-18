@@ -43,6 +43,7 @@ possession:
 
 metrics:
   exclude_goalkeeper: true   # sensitivity
+  required_players: 10       # outfield players per team (always 10 in Metrica; see audit)
 
 timecourse:
   window_before_s: 5.0
